@@ -4,5 +4,9 @@
     "description": "The Ludwig NLU Helper Extension for Hexabot Chatbot / Agent Builder to enable the Intent Classification, Language Detection and Slot Filling",
     "dependencies": {},
     "author": "Hexastack",
+    "scripts": {
+        "release:patch": "npm version patch && git push origin main --tags",
+        "release:minor": "npm version minor && git push origin main --tags"
+      },
     "license": "AGPL-3.0-only"
 }
