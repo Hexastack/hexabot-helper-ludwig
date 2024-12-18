@@ -21,7 +21,7 @@ The **Hexabot Ludwig NLU** engine is designed to process and analyze text input,
 To use the Hexabot Ludwig NLU Helper Extension within Hexabot, follow the steps below: 
 ```bash
 cd ~/projects/my-chatbot
-npm install hexabot-helper-ludwig-nlu
+npm install hexabot-helper-ludwig
 hexabot dev
 ```
 ## Usage
