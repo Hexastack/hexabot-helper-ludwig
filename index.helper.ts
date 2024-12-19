@@ -213,14 +213,30 @@ export default class LudwigNluHelper extends BaseNlpHelper<
     const slotsProbabilities = nlp.slots.predictions.slots_probabilities;
 
     const restoredEntities = slotsValues
-      .map((entity, index) => ({
-        entity: entity.startsWith('B-') ? entity.slice(2) : entity, // Format token by removing 'B-' prefix
-        //@ TODO add extra post processing steps for fetching the appropriate synonym
-        value: words[index - 1], // Align with the word index (adjusting for <SOS>)
-        confidence: slotsProbabilities[index],
-      }))
+      .map((entity, index) => {
+        if (index === 0 || !words[index - 1]) return null; // Skip if index is invalid or word is undefined
+
+        const token = words[index - 1]; // Align with the word index (adjusting for <SOS>)
+        const previousWord = index > 1 ? words[index - 2] : ''; // Get the previous word if it exists
+
+        // Calculate start and end indices
+        const start = givenText.indexOf(
+          token,
+          previousWord ? givenText.indexOf(previousWord) + previousWord.length : 0
+        );
+        const end = start + token.length;
+
+        return {
+          entity: entity.startsWith('B-') ? entity.slice(2) : entity, // Format token by removing 'B-' prefix
+          value: token, //@ TODO add extra post processing steps for fetching the appropriate synonym
+          start: start,
+          end: end,
+          confidence: slotsProbabilities[index],
+        };
+      })
       .filter(
         (item) =>
+          item &&
           item.entity !== '<SOS>' &&
           item.entity !== '<EOS>' &&
           item.entity !== 'O',
