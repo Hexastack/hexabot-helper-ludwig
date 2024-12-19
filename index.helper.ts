@@ -227,8 +227,8 @@ export default class LudwigNluHelper extends BaseNlpHelper<
         const end = start + token.length;
 
         return {
-          entity: entity.startsWith('B-') ? entity.slice(2) : entity, // Remove 'B-' prefix
-          value: token,
+          entity: entity.startsWith('B-') ? entity.slice(2) : entity, // Format token by removing 'B-' prefix
+          value: token, //@ TODO add extra post processing steps for fetching the appropriate synonym
           start: start,
           end: end,
           confidence: slotsProbabilities[index],
