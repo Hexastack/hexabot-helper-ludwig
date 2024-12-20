@@ -209,40 +209,51 @@ export default class LudwigNluHelper extends BaseNlpHelper<
     };
 
     // Process slots
-    const slotsValues = nlp.slots.predictions.slots_predictions;
-    const slotsProbabilities = nlp.slots.predictions.slots_probabilities;
-
-    const restoredEntities = slotsValues
-      .map((entity, index) => {
-        if (index === 0 || !words[index - 1]) return null; // Skip if index is invalid or word is undefined
-
-        const token = words[index - 1]; // Align with the word index (adjusting for <SOS>)
-        const previousWord = index > 1 ? words[index - 2] : ''; // Get the previous word if it exists
-
-        // Calculate start and end indices
-        const start = givenText.indexOf(
-          token,
-          previousWord ? givenText.indexOf(previousWord) + previousWord.length : 0
-        );
-        const end = start + token.length;
-
-        return {
-          entity: entity.startsWith('B-') ? entity.slice(2) : entity, // Format token by removing 'B-' prefix
-          value: token, //@ TODO add extra post processing steps for fetching the appropriate synonym
-          start: start,
-          end: end,
-          confidence: slotsProbabilities[index],
-        };
-      })
-      .filter(
-        (item) =>
-          item &&
-          item.entity !== '<SOS>' &&
-          item.entity !== '<EOS>' &&
-          item.entity !== 'O',
-      ); // Filter unwanted tokens
-
+    let restoredEntities=[];
     restoredEntities.push(formattedLanguagePayload);
+
+    // Process slots
+    if (nlp.slots) {
+      const slotsValues = nlp.slots.predictions.slots_predictions;
+      const slotsProbabilities = nlp.slots.predictions.slots_probabilities;
+    
+      if (slotsValues.length !== slotsProbabilities.length) {
+        throw new Error('Slots predictions and probabilities mismatch');
+      }
+    
+      const slotEntities = slotsValues
+        .map((entity, index) => {
+          if (index === 0 || !words[index - 1]) return null;
+    
+          const token = words[index - 1];
+          const previousWord = index > 1 ? words[index - 2] : '';
+    
+          const start = givenText.indexOf(
+            token,
+            previousWord ? givenText.indexOf(previousWord) + previousWord.length : 0
+          );
+          const end = start + token.length;
+    
+          return {
+            entity: entity.startsWith('B-') ? entity.slice(2) : entity,
+            value: token, // Replace with synonym if needed
+            start: start,
+            end: end,
+            confidence: slotsProbabilities[index],
+          };
+        })
+        .filter(
+          (item) =>
+            item &&
+            item.entity !== '<SOS>' &&
+            item.entity !== '<EOS>' &&
+            item.entity !== 'O' &&
+            item.confidence > 0.5,
+        );
+    
+      // Merge slot entities into restoredEntities
+      restoredEntities = [...restoredEntities, ...slotEntities];
+    }
 
     return {
       text: givenText,
