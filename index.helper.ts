@@ -115,32 +115,45 @@ export default class LudwigNluHelper extends BaseNlpHelper<
     entities: LudwigNlu.ExampleEntity[],
   ): string {
     const words = text.split(/\s+/);
-
+  
     // Initialize the slots array with 'O' tags
     const slots = Array(words.length).fill('O');
-
+  
     // Track the current character position in the original text
     let currentPosition = 0;
-
+  
+    // Variable to keep track of the ongoing entity
+    let currentEntity = null;
+  
     // Iterate over the words and map them to slots using entity indices
     words.forEach((word, index) => {
       // Calculate the start and end indices of the current word
       const wordStart = currentPosition;
       const wordEnd = currentPosition + word.length;
-
+  
       // Look for a matching entity whose indices overlap the current word
       const matchingEntity = entities.find(
         (e) => e.start < wordEnd && e.end > wordStart, // Check for overlap
       );
-
+  
       if (matchingEntity) {
-        slots[index] = `B-${matchingEntity.entity}`;
+        if (currentEntity === matchingEntity.entity) {
+          // Continuation of the same entity
+          slots[index] = `I-${matchingEntity.entity}`;
+        } else {
+          // Start of a new entity
+          slots[index] = `B-${matchingEntity.entity}`;
+          currentEntity = matchingEntity.entity; // Update the ongoing entity
+        }
+      } else {
+        // If there's no matching entity, reset the ongoing entity
+        currentEntity = null;
       }
-
+  
       // Update the current position (account for the space after the word)
       currentPosition = wordEnd + 1;
     });
-
+  
     const formattedSlots = slots.join(' ');
     return formattedSlots;
   }
@@ -235,7 +248,7 @@ export default class LudwigNluHelper extends BaseNlpHelper<
           const end = start + token.length;
     
           return {
-            entity: entity.startsWith('B-') ? entity.slice(2) : entity,
+            entity: entity.startsWith('B-') || entity.startsWith('I-') ? entity.slice(2) : entity,
             value: token, // Replace with synonym if needed
             start: start,
             end: end,
