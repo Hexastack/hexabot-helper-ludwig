@@ -234,36 +234,50 @@ export default class LudwigNluHelper extends BaseNlpHelper<
         throw new Error('Slots predictions and probabilities mismatch');
       }
     
+      let lastEntity = null;
       const slotEntities = slotsValues
         .map((entity, index) => {
           if (index === 0 || !words[index - 1]) return null;
-    
           const token = words[index - 1];
           const previousWord = index > 1 ? words[index - 2] : '';
-    
           const start = givenText.indexOf(
             token,
             previousWord ? givenText.indexOf(previousWord) + previousWord.length : 0
           );
+
           const end = start + token.length;
-    
-          return {
-            entity: entity.startsWith('B-') || entity.startsWith('I-') ? entity.slice(2) : entity,
-            value: token, // Replace with synonym if needed
-            start: start,
-            end: end,
-            confidence: slotsProbabilities[index],
-          };
-        })
-        .filter(
+          const entityLabel = entity.startsWith('B-') || entity.startsWith('I-') ? entity.slice(2) : entity;
+
+          if (entity.startsWith('B-')) {
+            // Start a new entity and reset lastEntity
+            lastEntity = {
+              entity: entityLabel,
+              value: token,
+              start: start,
+              end: end,
+              confidence: slotsProbabilities[index],
+            };
+            return lastEntity;
+            
+          } else if (entity.startsWith('I-') && lastEntity && lastEntity.entity === entityLabel) {
+            // Concatenate to previous entity
+            lastEntity.value += ` ${token}`;
+            lastEntity.end = end; // Update end index
+            return null; // Skip adding a new entity
+          } else {
+            // Reset lastEntity if entity is not B- or I-
+            lastEntity = null;
+            return null;
+          }
+        }).filter(
           (item) =>
             item &&
             item.entity !== '<SOS>' &&
             item.entity !== '<EOS>' &&
             item.entity !== 'O' &&
-            item.confidence > 0.5,
+            item.confidence > 0.5
         );
-    
+
       // Merge slot entities into restoredEntities
       restoredEntities = [...restoredEntities, ...slotEntities];
     }
