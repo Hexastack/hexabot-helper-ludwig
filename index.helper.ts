@@ -244,7 +244,6 @@ export default class LudwigNluHelper extends BaseNlpHelper<
             token,
             previousWord ? givenText.indexOf(previousWord) + previousWord.length : 0
           );
-
           const end = start + token.length;
           const entityLabel = entity.startsWith('B-') || entity.startsWith('I-') ? entity.slice(2) : entity;
 
@@ -258,7 +257,7 @@ export default class LudwigNluHelper extends BaseNlpHelper<
               confidence: slotsProbabilities[index],
             };
             return lastEntity;
-            
+
           } else if (entity.startsWith('I-') && lastEntity && lastEntity.entity === entityLabel) {
             // Concatenate to previous entity
             lastEntity.value += ` ${token}`;
@@ -277,7 +276,6 @@ export default class LudwigNluHelper extends BaseNlpHelper<
             item.entity !== 'O' &&
             item.confidence > 0.5
         );
-
       // Merge slot entities into restoredEntities
       restoredEntities = [...restoredEntities, ...slotEntities];
     }
