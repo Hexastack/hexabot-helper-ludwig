@@ -274,7 +274,7 @@ export default class LudwigNluHelper extends BaseNlpHelper<
             item.entity !== '<SOS>' &&
             item.entity !== '<EOS>' &&
             item.entity !== 'O' &&
-            item.confidence > 0.5
+            item.confidence > 0.5,
         );
       // Merge slot entities into restoredEntities
       restoredEntities = [...restoredEntities, ...slotEntities];
