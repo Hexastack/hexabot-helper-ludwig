@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 Hexastack. All rights reserved.
+ * Copyright © 2025 Hexastack. All rights reserved.
  *
  * Licensed under the GNU Affero General Public License v3.0 (AGPLv3) with the following additional terms:
  * 1. The name "Hexabot" is a trademark of Hexastack. You may not use this name in derivative works without express written permission.
@@ -22,7 +22,7 @@ import { SettingService } from '@/setting/services/setting.service';
 import { buildURL } from '@/utils/helpers/URL';
 
 import { LUDWIG_NLU_HELPER_NAME } from './settings';
-import { LudwigNlu } from './types';
+import { LudwigNlu, ParseEntity } from './types';
 
 @Injectable()
 export default class LudwigNluHelper extends BaseNlpHelper<
@@ -99,12 +99,14 @@ export default class LudwigNluHelper extends BaseNlpHelper<
           },
           {} as Record<string, string>,
         );
-        return {
+        const sample: LudwigNlu.LudwigNluDataSample = {
           text: s.text,
-          language: s.language.code,
+          language: s.language?.code ?? '',
           slots: formattedSlots,
           ...flattenedTraits, // Spread the flattened traits into the object
         };
+
+        return sample;
       });
 
     return dataset;
@@ -123,7 +125,7 @@ export default class LudwigNluHelper extends BaseNlpHelper<
     let currentPosition = 0;
   
     // Variable to keep track of the ongoing entity
-    let currentEntity = null;
+    let currentEntity: string | null = null;
   
     // Iterate over the words and map them to slots using entity indices
     words.forEach((word, index) => {
@@ -133,7 +135,7 @@ export default class LudwigNluHelper extends BaseNlpHelper<
   
       // Look for a matching entity whose indices overlap the current word
       const matchingEntity = entities.find(
-        (e) => e.start < wordEnd && e.end > wordStart, // Check for overlap
+        (e) => e.start != null && e.end != null && e.start < wordEnd && e.end > wordStart
       );
   
       if (matchingEntity) {
@@ -222,7 +224,7 @@ export default class LudwigNluHelper extends BaseNlpHelper<
     };
 
     // Process slots
-    let restoredEntities=[];
+    let restoredEntities: ParseEntity[] =[];
     restoredEntities.push(formattedLanguagePayload);
 
     // Process slots
@@ -234,7 +236,7 @@ export default class LudwigNluHelper extends BaseNlpHelper<
         throw new Error('Slots predictions and probabilities mismatch');
       }
     
-      let lastEntity = null;
+      let lastEntity: ParseEntity | null = null;
       const slotEntities = slotsValues
         .map((entity, index) => {
           if (index === 0 || !words[index - 1]) return null;
