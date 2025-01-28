@@ -37,7 +37,7 @@ MODEL_PATHS='{
     "slots': "my-slot-filler"
     }'
 ```
-For more details, refer to the [Hexabot Ludwig NLU Engine](https://github.com/Hexastack/hexabot-ludwig-nlu) and the [Hexabot Template Ludwig](https://github.com/Hexastack/hexabot-template-ludwig) repositories . 
+For more details, refer to the [Hexabot Ludwig NLU Engine](https://github.com/Hexastack/hexabot-ludwig-nlu) and the [Hexabot Template Ludwig](https://github.com/Hexastack/hexabot-template-ludwig) repositories. 
 
 ### Settings
 The extension provides configurable settings that can be adjusted to suit your needs. Below are the available settings:
