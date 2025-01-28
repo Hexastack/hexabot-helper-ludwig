@@ -22,10 +22,22 @@ To use the Hexabot Ludwig NLU Helper Extension within Hexabot, follow the steps 
 ```bash
 cd ~/projects/my-chatbot
 npm install hexabot-helper-ludwig
-hexabot dev
+hexabot dev --services ludwig-nlu
 ```
 ## Usage
-The Hexabot Ludwig NLU Helper provides a range of methods to interact with the Ludwig NLU engine. Here’s how you can use its functionalities.
+The Hexabot Ludwig NLU Helper provides a range of methods to interact with the Ludwig NLU engine.
+
+### Set up 
+In your .env file, you can define a key-value dictionary where the keys represent different NLP entities (language, slots, intent) and the values correspond to the hosted models for each entity. Currently, the Hexabot Ludwig NLU extension supports only ```slots```, ```language``` and ```intent``` as valid keys. Example :
+
+```bash 
+MODEL_PATHS='{
+    "language": "my-language-classifier", 
+    "intent": "my-intent-classifier",
+    "slots': "my-slot-filler"
+    }'
+```
+For more details, refer to the [Hexabot Ludwig NLU Engine](https://github.com/Hexastack/hexabot-ludwig-nlu) and the [Hexabot Template Ludwig](https://github.com/Hexastack/hexabot-template-ludwig) repositories. 
 
 ### Settings
 The extension provides configurable settings that can be adjusted to suit your needs. Below are the available settings:
