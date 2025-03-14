@@ -24,7 +24,7 @@ export default [
     group: LUDWIG_NLU_HELPER_NAMESPACE,
     label: 'token',
     value: 'token123',
-    type: SettingType.text,
+    type: SettingType.secret,
   },
   {
     group: LUDWIG_NLU_HELPER_NAMESPACE,
@@ -34,7 +34,7 @@ export default [
     config: {
       min: 0,
       max: 1,
-      step: 0.01,
+      step: '0.01',
     },
   },
 ] as const satisfies HelperSetting<typeof LUDWIG_NLU_HELPER_NAME>[];
