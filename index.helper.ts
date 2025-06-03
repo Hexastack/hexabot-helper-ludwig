@@ -117,27 +117,31 @@ export default class LudwigNluHelper extends BaseNlpHelper<
     entities: LudwigNlu.ExampleEntity[],
   ): string {
     const words = text.split(/\s+/);
-  
+
     // Initialize the slots array with 'O' tags
     const slots = Array(words.length).fill('O');
-  
+
     // Track the current character position in the original text
     let currentPosition = 0;
-  
+
     // Variable to keep track of the ongoing entity
     let currentEntity: string | null = null;
-  
+
     // Iterate over the words and map them to slots using entity indices
     words.forEach((word, index) => {
       // Calculate the start and end indices of the current word
       const wordStart = currentPosition;
       const wordEnd = currentPosition + word.length;
-  
+
       // Look for a matching entity whose indices overlap the current word
       const matchingEntity = entities.find(
-        (e) => e.start != null && e.end != null && e.start < wordEnd && e.end > wordStart
+        (e) =>
+          e.start != null &&
+          e.end != null &&
+          e.start < wordEnd &&
+          e.end > wordStart,
       );
-  
+
       if (matchingEntity) {
         if (currentEntity === matchingEntity.entity) {
           // Continuation of the same entity
@@ -151,11 +155,11 @@ export default class LudwigNluHelper extends BaseNlpHelper<
         // If there's no matching entity, reset the ongoing entity
         currentEntity = null;
       }
-  
+
       // Update the current position (account for the space after the word)
       currentPosition = wordEnd + 1;
     });
-  
+
     const formattedSlots = slots.join(' ');
     return formattedSlots;
   }
@@ -224,18 +228,18 @@ export default class LudwigNluHelper extends BaseNlpHelper<
     };
 
     // Process slots
-    let restoredEntities: ParseEntity[] =[];
+    let restoredEntities: ParseEntity[] = [];
     restoredEntities.push(formattedLanguagePayload);
 
     // Process slots
     if (nlp.slots) {
       const slotsValues = nlp.slots.predictions.slots_predictions;
       const slotsProbabilities = nlp.slots.predictions.slots_probabilities;
-    
+
       if (slotsValues.length !== slotsProbabilities.length) {
         throw new Error('Slots predictions and probabilities mismatch');
       }
-    
+
       let lastEntity: ParseEntity | null = null;
       const slotEntities = slotsValues
         .map((entity, index) => {
@@ -244,23 +248,31 @@ export default class LudwigNluHelper extends BaseNlpHelper<
           const previousWord = index > 1 ? words[index - 2] : '';
           const start = givenText.indexOf(
             token,
-            previousWord ? givenText.indexOf(previousWord) + previousWord.length : 0
+            previousWord
+              ? givenText.indexOf(previousWord) + previousWord.length
+              : 0,
           );
           const end = start + token.length;
-          const entityLabel = entity.startsWith('B-') || entity.startsWith('I-') ? entity.slice(2) : entity;
+          const entityLabel =
+            entity.startsWith('B-') || entity.startsWith('I-')
+              ? entity.slice(2)
+              : entity;
 
           if (entity.startsWith('B-')) {
             // Start a new entity and reset lastEntity
             lastEntity = {
               entity: entityLabel,
               value: token,
-              start: start,
-              end: end,
+              start,
+              end,
               confidence: slotsProbabilities[index],
             };
             return lastEntity;
-
-          } else if (entity.startsWith('I-') && lastEntity && lastEntity.entity === entityLabel) {
+          } else if (
+            entity.startsWith('I-') &&
+            lastEntity &&
+            lastEntity.entity === entityLabel
+          ) {
             // Concatenate to previous entity
             lastEntity.value += ` ${token}`;
             lastEntity.end = end; // Update end index
@@ -270,7 +282,8 @@ export default class LudwigNluHelper extends BaseNlpHelper<
             lastEntity = null;
             return null;
           }
-        }).filter(
+        })
+        .filter(
           (item) =>
             item &&
             item.entity !== '<SOS>' &&
